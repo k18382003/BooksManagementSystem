@@ -43,6 +43,9 @@ namespace Books_Management_System
             this.btnAdd = new System.Windows.Forms.Button();
             this.btnDel = new System.Windows.Forms.Button();
             this.btnDone = new System.Windows.Forms.Button();
+            this.lblYearBornValidation = new System.Windows.Forms.Label();
+            this.btnFirst = new System.Windows.Forms.Button();
+            this.btnLast = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // lblAuthorID
@@ -50,7 +53,7 @@ namespace Books_Management_System
             this.lblAuthorID.AutoSize = true;
             this.lblAuthorID.Location = new System.Drawing.Point(37, 26);
             this.lblAuthorID.Name = "lblAuthorID";
-            this.lblAuthorID.Size = new System.Drawing.Size(48, 16);
+            this.lblAuthorID.Size = new System.Drawing.Size(94, 29);
             this.lblAuthorID.TabIndex = 0;
             this.lblAuthorID.Text = "Author ID";
             // 
@@ -59,7 +62,7 @@ namespace Books_Management_System
             this.lblAuthorName.AutoSize = true;
             this.lblAuthorName.Location = new System.Drawing.Point(37, 67);
             this.lblAuthorName.Name = "lblAuthorName";
-            this.lblAuthorName.Size = new System.Drawing.Size(64, 16);
+            this.lblAuthorName.Size = new System.Drawing.Size(128, 29);
             this.lblAuthorName.TabIndex = 1;
             this.lblAuthorName.Text = "Author Name";
             // 
@@ -68,7 +71,7 @@ namespace Books_Management_System
             this.lblYearBorn.AutoSize = true;
             this.lblYearBorn.Location = new System.Drawing.Point(37, 105);
             this.lblYearBorn.Name = "lblYearBorn";
-            this.lblYearBorn.Size = new System.Drawing.Size(51, 16);
+            this.lblYearBorn.Size = new System.Drawing.Size(102, 29);
             this.lblYearBorn.TabIndex = 2;
             this.lblYearBorn.Text = "Year Born";
             // 
@@ -77,28 +80,31 @@ namespace Books_Management_System
             this.txtAuthorID.Location = new System.Drawing.Point(129, 23);
             this.txtAuthorID.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtAuthorID.Name = "txtAuthorID";
-            this.txtAuthorID.Size = new System.Drawing.Size(173, 21);
+            this.txtAuthorID.Size = new System.Drawing.Size(173, 35);
             this.txtAuthorID.TabIndex = 3;
+            this.txtAuthorID.TabStop = false;
             // 
             // txtAutorName
             // 
             this.txtAutorName.Location = new System.Drawing.Point(129, 64);
             this.txtAutorName.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtAutorName.Name = "txtAutorName";
-            this.txtAutorName.Size = new System.Drawing.Size(359, 21);
+            this.txtAutorName.Size = new System.Drawing.Size(359, 35);
             this.txtAutorName.TabIndex = 4;
+            this.txtAutorName.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.AuthorName_keyPress);
             // 
             // txtYearBorn
             // 
             this.txtYearBorn.Location = new System.Drawing.Point(129, 102);
             this.txtYearBorn.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtYearBorn.Name = "txtYearBorn";
-            this.txtYearBorn.Size = new System.Drawing.Size(173, 21);
+            this.txtYearBorn.Size = new System.Drawing.Size(173, 35);
             this.txtYearBorn.TabIndex = 5;
+            this.txtYearBorn.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.YearBorn_KeyPress);
             // 
             // btnPrevious
             // 
-            this.btnPrevious.Location = new System.Drawing.Point(153, 145);
+            this.btnPrevious.Location = new System.Drawing.Point(157, 145);
             this.btnPrevious.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btnPrevious.Name = "btnPrevious";
             this.btnPrevious.Size = new System.Drawing.Size(67, 35);
@@ -149,6 +155,7 @@ namespace Books_Management_System
             this.btnCancel.TabIndex = 10;
             this.btnCancel.Text = "&Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
+            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
             // btnAdd
             // 
@@ -159,6 +166,7 @@ namespace Books_Management_System
             this.btnAdd.TabIndex = 11;
             this.btnAdd.Text = "&Add New";
             this.btnAdd.UseVisualStyleBackColor = true;
+            this.btnAdd.Click += new System.EventHandler(this.btnAdd_Click);
             // 
             // btnDel
             // 
@@ -180,12 +188,49 @@ namespace Books_Management_System
             this.btnDone.TabIndex = 13;
             this.btnDone.Text = "Do&ne";
             this.btnDone.UseVisualStyleBackColor = true;
+            this.btnDone.Click += new System.EventHandler(this.btnDone_Click);
+            // 
+            // lblYearBornValidation
+            // 
+            this.lblYearBornValidation.AutoSize = true;
+            this.lblYearBornValidation.Font = new System.Drawing.Font("Arial Narrow", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblYearBornValidation.ForeColor = System.Drawing.Color.Red;
+            this.lblYearBornValidation.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.lblYearBornValidation.Location = new System.Drawing.Point(308, 102);
+            this.lblYearBornValidation.Name = "lblYearBornValidation";
+            this.lblYearBornValidation.Size = new System.Drawing.Size(252, 31);
+            this.lblYearBornValidation.TabIndex = 14;
+            this.lblYearBornValidation.Text = "Should be numeric value";
+            this.lblYearBornValidation.Visible = false;
+            // 
+            // btnFirst
+            // 
+            this.btnFirst.Location = new System.Drawing.Point(42, 145);
+            this.btnFirst.Name = "btnFirst";
+            this.btnFirst.Size = new System.Drawing.Size(81, 35);
+            this.btnFirst.TabIndex = 15;
+            this.btnFirst.Text = "First";
+            this.btnFirst.UseVisualStyleBackColor = true;
+            this.btnFirst.Click += new System.EventHandler(this.btnFirst_Click);
+            // 
+            // btnLast
+            // 
+            this.btnLast.Location = new System.Drawing.Point(404, 145);
+            this.btnLast.Name = "btnLast";
+            this.btnLast.Size = new System.Drawing.Size(75, 35);
+            this.btnLast.TabIndex = 16;
+            this.btnLast.Text = "Last";
+            this.btnLast.UseVisualStyleBackColor = true;
+            this.btnLast.Click += new System.EventHandler(this.btnLast_Click);
             // 
             // frmAuthor
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 29F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(514, 289);
+            this.Controls.Add(this.btnLast);
+            this.Controls.Add(this.btnFirst);
+            this.Controls.Add(this.lblYearBornValidation);
             this.Controls.Add(this.btnDone);
             this.Controls.Add(this.btnDel);
             this.Controls.Add(this.btnAdd);
@@ -227,6 +272,9 @@ namespace Books_Management_System
         private System.Windows.Forms.Button btnAdd;
         private System.Windows.Forms.Button btnDel;
         private System.Windows.Forms.Button btnDone;
+        private System.Windows.Forms.Label lblYearBornValidation;
+        private System.Windows.Forms.Button btnFirst;
+        private System.Windows.Forms.Button btnLast;
     }
 }
 
