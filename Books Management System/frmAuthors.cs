@@ -267,6 +267,9 @@ namespace Books_Management_System
         private void btnCancel_Click(object sender, EventArgs e)
         {
             isEdit(false);
+            if (string.IsNullOrWhiteSpace(txtAutorName.Text))
+                authorsManager.RemoveAt(authorsManager.Position);
+            authorsManager.Refresh();            
         }
 
         private void Edit()
@@ -330,5 +333,37 @@ namespace Books_Management_System
             authorsManager.Position = authorsManager.Count - 1;
         }
 
+        private void btnSearch_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                sb = new StringBuilder();
+                sb.Append("SELECT * FROM Authors where Au_ID like @search or Year_Born like @search or Author like @search");
+                cmd = new MySqlCommand(Convert.ToString(sb), mySqlConnection);
+                cmd.Parameters.AddWithValue("@search", "%"+txtSearch.Text+"%");
+
+                MySqlDataReader drTemp = cmd.ExecuteReader();
+                if(drTemp.Read())
+                {
+                    dtAuthors.DefaultView.Sort = "Author";
+                    authorsManager.Position = dtAuthors.DefaultView.Find(Convert.ToString(drTemp["Author"]));
+                }
+                else
+                {
+                    lblSearch.Visible = true;
+                }
+
+                drTemp.Close();
+            }
+            catch (MySqlException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void SearchBoxKeyPress(object sender, KeyPressEventArgs e)
+        {
+            lblSearch.Visible = false;
+        }
     }
 }

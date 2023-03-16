@@ -154,11 +154,7 @@ namespace Books_Management_System
         private void btnAdd_Click(object sender, EventArgs e)
         {
             isEdit(true);
-            foreach(Control x in this.tableLayoutPanel1.Controls)
-            {
-                if (x is TextBox)
-                    ((TextBox)x).Text = String.Empty;
-            }
+            PublisherManager.AddNew();
             txtPubID.Text = "Auto";
             fnchange = "Add";
 
@@ -166,21 +162,27 @@ namespace Books_Management_System
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            if (!isValid())
-            {
+            bool isValid = Valid_Input();
+            if (!isValid)
                 return;
-            }
-            else
+            try
             {
                 switch (fnchange)
                 {
                     case "Edit":
                         Edit();
+                        PublisherManager.EndCurrentEdit();
                         break;
                     case "Add":
                         Add();
                         break;
                 }
+                PublisherManager.Refresh();
+                isEdit(false);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Data Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
         }
@@ -259,9 +261,12 @@ namespace Books_Management_System
         private void btnCancel_Click(object sender, EventArgs e)
         {
             isEdit(false);
+            if (string.IsNullOrWhiteSpace(txtName.Text))
+                PublisherManager.RemoveAt(PublisherManager.Position);
+            PublisherManager.Refresh();
         }
 
-        private bool isValid()
+        private bool Valid_Input()
         {
             bool validinput = true;
 
@@ -289,9 +294,15 @@ namespace Books_Management_System
             {
                 try
                 {
+                    PublisherManager.RemoveAt(PublisherManager.Position);
+                    sb = new StringBuilder();
                     sb.Append("Delete from publishers where PubID = @PubID ");
-                    cmd.Parameters.AddWithValue("@PubID", txtPubID.Text);
+                    cmd = new MySqlCommand(Convert.ToString(sb), mySqlConnection);
+                    cmd.Parameters.AddWithValue("@PubID", Convert.ToInt32(txtPubID.Text));
                     cmd.ExecuteNonQuery();
+                    sb.Clear();
+                    cmd.Parameters.Clear();
+
                 }
                 catch(Exception ex)
                 {
@@ -299,6 +310,44 @@ namespace Books_Management_System
                 }
                                  
             }
+        }
+
+        private void btnDone_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        private void btnSearch_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                sb = new StringBuilder();
+                sb.Append("SELECT * FROM publishers where Company_Name like @search or PubID like @search ");
+                cmd = new MySqlCommand(Convert.ToString(sb), mySqlConnection);
+                cmd.Parameters.AddWithValue("@search", "%" + txtsearch.Text + "%");
+
+                MySqlDataReader drTemp = cmd.ExecuteReader();
+                if (drTemp.Read())
+                {
+                    dtPublisher.DefaultView.Sort = "PubID";
+                    PublisherManager.Position = dtPublisher.DefaultView.Find(Convert.ToString(drTemp["PubID"]));
+                }
+                else
+                {
+                    lblSearch.Visible = true;
+                }
+
+                drTemp.Close(); 
+            }
+            catch (MySqlException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void SearchBoxKeyPress(object sender, KeyPressEventArgs e)
+        {
+            lblSearch.Visible = false;
         }
     }
 }
