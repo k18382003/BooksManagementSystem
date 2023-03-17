@@ -25,7 +25,7 @@ namespace Books_Management_System
         MySqlDataAdapter da;
         DataTable dtBooksManagement;
         CurrencyManager BooksManagementManager;
-        DataTable[] dtauthors;
+        DataTable dtauthors;
         ComboBox[] authorsCombo;
         DataTable dtISBNAuthors;
         DataTable dtPublisher;
@@ -42,8 +42,13 @@ namespace Books_Management_System
 
         private void frmBooksManagement_Load(object sender, EventArgs e)
         {
-            string cnnString = "server=127.0.0.1;uid=sa;pwd=P@ssword;database=mydatabase";
             isEdit(false);
+            BooksManagementLoad();
+        }
+
+        private void BooksManagementLoad()
+        {
+            string cnnString = "server=127.0.0.1;uid=sa;pwd=P@ssword;database=mydatabase";
             //建立連線, 及相關參數
             try
             {
@@ -51,12 +56,20 @@ namespace Books_Management_System
                 mySqlConnection.ConnectionString = cnnString;
                 mySqlConnection.Open();
                 dtBooksManagement = new DataTable();
-                dtauthors = new DataTable[4];
+                dtauthors = new DataTable();
                 authorsCombo = new ComboBox[4];
                 dtPublisher = new DataTable();
 
                 try
                 {
+                    txtTitle.DataBindings.Clear();
+                    txtYearPub.DataBindings.Clear();
+                    msktxtISBN.DataBindings.Clear();
+                    txtDescription.DataBindings.Clear();
+                    txtNotes.DataBindings.Clear();
+                    txtSubjects.DataBindings.Clear();
+                    txtCmt.DataBindings.Clear();
+
                     //撈出資料
                     cmd = new MySqlCommand("SELECT * FROM Titles order by Title", mySqlConnection);
                     da = new MySqlDataAdapter();
@@ -205,6 +218,10 @@ namespace Books_Management_System
                 btnAu2.Enabled = true;
                 btnAu3.Enabled = true;
                 btnAu4.Enabled = true;
+                cbxPub.Enabled = true;
+                btnSearch.Enabled = false;
+                btnPublishers.Enabled = false;
+                btnAuthors.Enabled = false;
             }
             else
             {
@@ -233,6 +250,10 @@ namespace Books_Management_System
                 btnAu2.Enabled = false;
                 btnAu3.Enabled = false;
                 btnAu4.Enabled = false;
+                cbxPub.Enabled = false;
+                btnSearch.Enabled = true;
+                btnPublishers.Enabled = true;
+                btnAuthors.Enabled = true;
             }
         }
 
@@ -280,17 +301,23 @@ namespace Books_Management_System
         {
             frmAuthor frmAuthor = new frmAuthor();
             frmAuthor.ShowDialog();
+            BooksManagementLoad();
         }
 
         private void btnPublishers_Click(object sender, EventArgs e)
         {
             frmPublishers frmPublishers = new frmPublishers();
             frmPublishers.ShowDialog();
+            BooksManagementLoad();
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
             fnchange = "Add";
+            cbxAuth1.Text = "";
+            cbxAuth2.Text = "";
+            cbxAuth3.Text = "";
+            cbxAuth4.Text = "";
             CurrentPostiion = BooksManagementManager.Position;
             BooksManagementManager.AddNew();
             isEdit(true);
@@ -312,18 +339,23 @@ namespace Books_Management_System
             {
                 try
                 {
-                    //刪除資料
-                    BooksManagementManager.RemoveAt(BooksManagementManager.Position);
+                    // 需先刪除title_author
+                    sb.Clear();
+                    sb.Append("Delete from title_author where ISBN = @ISBN");
+                    cmd = new MySqlCommand(Convert.ToString(sb), mySqlConnection);
+                    cmd.Parameters.AddWithValue("@ISBN", msktxtISBN.Text);
+                    cmd.ExecuteNonQuery();
+
+                    //刪除titles資料
                     sb.Clear();
                     sb.Append("Delete from titles where ISBN = @ISBN");
                     cmd = new MySqlCommand(Convert.ToString(sb), mySqlConnection);
                     cmd.Parameters.AddWithValue("@ISBN", msktxtISBN.Text);
                     cmd.ExecuteNonQuery();
-                    transaction.Commit();
+                    BooksManagementManager.RemoveAt(BooksManagementManager.Position);
                 }
                 catch (Exception ex)
                 {
-                    transaction.Rollback();
                     MessageBox.Show(ex.Message, "Delete Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
@@ -338,8 +370,8 @@ namespace Books_Management_System
                 transaction = mySqlConnection.BeginTransaction();
                 cmd.Connection = mySqlConnection;
                 cmd.Transaction = transaction;
-                _params = new Dictionary<string, object>();
-                //sb.Clear();
+                sb = new StringBuilder();
+
                 sb.Append("Update Titles set Title=@Title, Year_Published=@Year_Published, Description=@Description, ");
                 sb.Append("Notes=@Notes, Subject=@Subject, Commets=@Comments, PubID=@PubID where ISBN=@ISBN");
                 cmd.CommandText = sb.ToString();
@@ -353,35 +385,15 @@ namespace Books_Management_System
                 cmd.Parameters.AddWithValue("@PubID", cbxPub.SelectedValue);
 
                 cmd.ExecuteNonQuery();
-                //_params.Add("@Title", txtTitle.Text);
-                //_params.Add("@Year_Published", txtYearPub.Text);
-                //_params.Add("@Description", txtDescription.Text);
-                //_params.Add("@Notes", txtNotes.Text);
-                //_params.Add("@Subject", txtSubjects.Text);
-                //_params.Add("@Comments", txtCmt.Text);
-                //_params.Add("@ISBN", msktxtISBN.Text);
-                //_params.Add("@PubID", cbxPub.SelectedValue);
 
-                //SqlCollection.Add(Convert.ToString(sb));
-                //ListParams.Add(_params);
-
-                _params = new Dictionary<string, object>();
                 sb.Clear();
                 sb.Append("DELETE FROM title_author where ISBN = @ISBN_DELETE");
                 cmd.CommandText = sb.ToString();
                 cmd.Parameters.AddWithValue("@ISBN_DELETE", msktxtISBN.Text);
 
                 cmd.ExecuteNonQuery();
-                //_params.Add("@ISBN_DELETE", msktxtISBN.Text);
 
-                //SqlCollection.Add(Convert.ToString(sb));
-                //ListParams.Add(_params);
-
-                Insert_title_author();
-
-                //BatchExecuteNonQuery(SqlCollection, ListParams);
                 transaction.Commit();
-                //SqlCollection.Clear();
                 MessageBox.Show("You have changed the record sucessfully.", "Data Edit", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             }
@@ -396,6 +408,10 @@ namespace Books_Management_System
         {
             try
             {
+                transaction = mySqlConnection.BeginTransaction();
+                cmd.Connection = mySqlConnection;
+                cmd.Transaction = transaction;
+
                 sb = new StringBuilder();
                 sb.Append("Insert into Titles (Title, Year_Published, ISBN, Description, Notes, Subject, Commets ) ");
                 sb.Append(" Values(@Title, @Year_Published, @ISBN, @Description, @Notes, @Subject, @Comments) ");
@@ -413,6 +429,7 @@ namespace Books_Management_System
                 Insert_title_author();
 
                 transaction.Commit();
+        
                 MessageBox.Show("You have added the record successfully.", "Add", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
@@ -474,6 +491,7 @@ namespace Books_Management_System
 
         private void GetAuthor_ISBN()
         {
+            dtauthors.Clear();
             authorsCombo[0] = cbxAuth1;
             authorsCombo[1] = cbxAuth2;
             authorsCombo[2] = cbxAuth3;
@@ -482,16 +500,16 @@ namespace Books_Management_System
             dtISBNAuthors = AUIDforISBN();
             int rowcount = dtISBNAuthors.Rows.Count - 1;
 
-            cmd = new MySqlCommand("SELECT Author, AU_ID FROM authors ", mySqlConnection);
+            cmd = new MySqlCommand("SELECT Author, AU_ID FROM authors order by Author", mySqlConnection);
             da = new MySqlDataAdapter();
             da.SelectCommand = cmd;
-
+            da.Fill(dtauthors);
 
             for (int i = 0; i < 4; i++)
             {
-                dtauthors[i] = new DataTable();
-                da.Fill(dtauthors[i]);
-                authorsCombo[i].DataSource = dtauthors[i];
+                DataTable dtTemp = new DataTable();
+                dtTemp = dtauthors.Copy();
+                authorsCombo[i].DataSource = dtTemp;
                 authorsCombo[i].DisplayMember = "Author";
                 authorsCombo[i].ValueMember = "AU_ID";
 
@@ -543,8 +561,9 @@ namespace Books_Management_System
 
         private void GetPublisher_PUBID()
         {
-
-            cmd = new MySqlCommand("SELECT Name, PubID FROM publishers ", mySqlConnection);
+            dtPublisher.Clear();
+            cbxPub.DataBindings.Clear();
+            cmd = new MySqlCommand("SELECT Name, PubID FROM publishers order by Name", mySqlConnection);
             da = new MySqlDataAdapter();
             da.SelectCommand = cmd;
             da.Fill(dtPublisher);
@@ -574,18 +593,12 @@ namespace Books_Management_System
             {
                 if (authorsCombo[i].SelectedIndex != -1)
                 {
-                    //_params = new Dictionary<string, object>();
                     sb.Clear();
                     sb.Append("Insert into title_author (ISBN, AU_ID) Values(@ISBN"+i+", @AU_ID"+i+")");
                     cmd.CommandText = Convert.ToString(sb);
                     cmd.Parameters.AddWithValue("@ISBN" + i, msktxtISBN.Text);
                     cmd.Parameters.AddWithValue("@AU_ID" + i, authorsCombo[i].SelectedValue);
                     cmd.ExecuteNonQuery();
-                    //_params.Add("@ISBN" + i, msktxtISBN.Text);
-                    //_params.Add("@AU_ID" + i, authorsCombo[i].SelectedValue);
-
-                    //SqlCollection.Add(Convert.ToString(sb));
-                    //ListParams.Add(_params);
                 }
             }
         }
@@ -593,10 +606,6 @@ namespace Books_Management_System
         //待Debug
         public void BatchExecuteNonQuery(List<string> sqlcollection, List<Dictionary<string, object>> _params)
         {
-            //cmd = new MySqlCommand();
-            //transaction = mySqlConnection.BeginTransaction();
-            //cmd.Connection = mySqlConnection;
-            //cmd.Transaction = transaction;
             for(int i = 0; i < sqlcollection.Count - 1; i++)
             {
                 cmd.CommandText = sqlcollection[i];

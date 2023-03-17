@@ -24,7 +24,7 @@ namespace Books_Management_System
         MySqlConnection mySqlConnection;
         MySqlCommand cmd;
         MySqlDataAdapter daAuthors;
-        DataTable dtAuthors;
+        public DataTable dtAuthors;
         CurrencyManager authorsManager;
 
         bool DatabaseError = false; //DB連線時Error Flag
@@ -34,6 +34,11 @@ namespace Books_Management_System
 
         //載入表單
         private void frmAuthor_Load(object sender, EventArgs e)
+        {
+            LoadAuthor();
+        }
+
+        private void LoadAuthor()
         {
             //連線字串
             string cnnString = "server=127.0.0.1;uid=sa;pwd=P@ssword;database=mydatabase";
@@ -51,6 +56,10 @@ namespace Books_Management_System
 
                 try
                 {
+                    txtAuthorID.DataBindings.Clear();
+                    txtAutorName.DataBindings.Clear();
+                    txtYearBorn.DataBindings.Clear();
+
                     //撈出資料
                     cmd.CommandText = "SELECT * FROM Authors Order by Au_ID";
                     cmd.Connection = mySqlConnection;
@@ -61,6 +70,7 @@ namespace Books_Management_System
                     txtAuthorID.DataBindings.Add("Text", dtAuthors, "Au_ID");
                     txtAutorName.DataBindings.Add("Text", dtAuthors, "Author");
                     txtYearBorn.DataBindings.Add("Text", dtAuthors, "Year_Born");
+
                     //使用CurrencyManager來控制綁定物件
                     //可以利用Position屬性, 來控制顯示上/下筆資料
                     authorsManager = (CurrencyManager)BindingContext[dtAuthors];
@@ -119,7 +129,7 @@ namespace Books_Management_System
                         Add();
                         break;
                 }
-                authorsManager.Refresh();
+                LoadAuthor();
                 isEdit(false);
             }
             catch(Exception ex)
@@ -144,12 +154,13 @@ namespace Books_Management_System
             {
                 try
                 {
+                    sb = new StringBuilder();
                     //刪除資料
-                    authorsManager.RemoveAt(authorsManager.Position);
                     sb.Append("Delete from authors where Au_ID = @AuthorID");
                     cmd = new MySqlCommand(Convert.ToString(sb), mySqlConnection);
                     cmd.Parameters.AddWithValue("@AuthorID",txtAuthorID.Text);
                     cmd.ExecuteNonQuery();
+                    authorsManager.RemoveAt(authorsManager.Position);
                     sb.Clear();
                     cmd.Parameters.Clear();
                 }
@@ -276,6 +287,7 @@ namespace Books_Management_System
         {
             try
             {
+                sb = new StringBuilder();
                 sb.Append("Update Authors set Author=@Author, Year_Born=@Yearborn Where Au_ID=@AuID");
                 cmd = new MySqlCommand(Convert.ToString(sb), mySqlConnection);
                 cmd.Parameters.AddWithValue("@Author", txtAutorName.Text);

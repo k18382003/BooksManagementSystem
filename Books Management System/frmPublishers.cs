@@ -294,12 +294,12 @@ namespace Books_Management_System
             {
                 try
                 {
-                    PublisherManager.RemoveAt(PublisherManager.Position);
                     sb = new StringBuilder();
                     sb.Append("Delete from publishers where PubID = @PubID ");
                     cmd = new MySqlCommand(Convert.ToString(sb), mySqlConnection);
                     cmd.Parameters.AddWithValue("@PubID", Convert.ToInt32(txtPubID.Text));
                     cmd.ExecuteNonQuery();
+                    PublisherManager.RemoveAt(PublisherManager.Position);
                     sb.Clear();
                     cmd.Parameters.Clear();
 
